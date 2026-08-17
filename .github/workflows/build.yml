@@ -1,0 +1,40 @@
+name: Build IPA
+
+on: 
+  workflow_dispatch:
+  push:
+    branches: Integration
+
+jobs:
+  build:
+    name: Build IPA
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Get Last Commit Time
+        id: get_commit_time
+        run: |
+          COMMIT_TIME=$(git log -1 --format=%cd --date=format:%Y.%m.%d)
+          echo "Last Commit Time: $COMMIT_TIME"
+          echo "COMMIT_TIME=$COMMIT_TIME" >> $GITHUB_ENV
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.3.app
+          sudo ln -sfn /Applications/Xcode_26.3.app /Applications/Xcode.app
+      - name: Build
+        run: |
+          xcodebuild -scheme "VoidLink" -configuration Release -sdk iphoneos archive -archivePath ./build/vl.xcarchive CODE_SIGN_IDENTITY="" CODE_SIGN_REQUIRED="NO" CODE_SIGN_ENTITLEMENTS="" CODE_SIGNING_ALLOWED="NO" MARKETING_VERSION=$COMMIT_TIME
+          mkdir -p ./build/Payload
+          mv ./build/vl.xcarchive/Products/Applications/VoidLink.app ./build/Payload
+          cd ./build && zip -r VoidLink-$COMMIT_TIME.ipa ./Payload && cd ..
+      
+      - name: Upload IPA to Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: VoidLink
+          path: build/*.ipa

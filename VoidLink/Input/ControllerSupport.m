@@ -10,7 +10,6 @@
 //
 
 #import "ControllerSupport.h"
-#import "GameSirG8MFiRumble.h"
 #import "OnScreenControls.h"
 #import "VoidController.h"
 #import "VoidLink-Swift.h"
@@ -120,7 +119,7 @@ static void ApplyAdaptiveTriggerEffect(GCDualSenseAdaptiveTrigger* trigger,
     OSCProfile* oscProfile;
     OSCProfilesManager* oscProfileMan;
 #if !TARGET_OS_TV
-    GameSirG8MFiRumble *_gameSirG8MFiRumble;
+    GameSirG8MFiRumbler *_gameSirG8MFiRumbler;
 #endif
 
 #define EMULATING_SELECT     0x1
@@ -159,6 +158,20 @@ static void ApplyAdaptiveTriggerEffect(GCDualSenseAdaptiveTrigger* trigger,
 
 #define MAX_MAGNITUDE(x, y) (abs(x) > abs(y) ? (x) : (y))
 
+-(void) applyPhysicalControllerRumble:(VoidController*)controller lowFreqMotor:(unsigned short)lowFreqMotor highFreqMotor:(unsigned short)highFreqMotor
+{
+#if !TARGET_OS_TV
+    if (controller.hardware == ControllerHardwareG8PlusMFi) {
+        // NSLog(@"[G8Rumble] route native rumble low=%hu high=%hu", lowFreqMotor, highFreqMotor);
+        [_gameSirG8MFiRumbler setLowFrequencyMotor:lowFreqMotor highFrequencyMotor:highFreqMotor];
+        return;
+    }
+#endif
+
+    [controller.lowFreqMotor setMotorAmplitude:lowFreqMotor];
+    [controller.highFreqMotor setMotorAmplitude:highFreqMotor];
+}
+
 -(void) rumble:(unsigned short)controllerNumber lowFreqMotor:(unsigned short)lowFreqMotor highFreqMotor:(unsigned short)highFreqMotor
 {
     VoidController* voidController = [_voidControllers objectForKey:[NSNumber numberWithInteger:controllerNumber]];
@@ -178,48 +191,31 @@ static void ApplyAdaptiveTriggerEffect(GCDualSenseAdaptiveTrigger* trigger,
         return;
     }
 
-#if !TARGET_OS_TV
-    BOOL useGameSirG8MFiRumble = [_gameSirG8MFiRumble canHandleController:voidController.gamepad];
-#endif
+    /*
+    NSLog(@"[G8Rumble] rumble request controller=%hu low=%hu high=%hu preference=%ld vendor=%@",
+          controllerNumber,
+          lowFreqMotor,
+          highFreqMotor,
+          (long)preference,
+          voidController.gamepad.vendorName);
+     */
     
     // physical controller connected:
     switch (preference) {
         case HapticEngineAuto:
-#if !TARGET_OS_TV
-            if (useGameSirG8MFiRumble) {
-                [_gameSirG8MFiRumble setLowFrequencyMotor:lowFreqMotor highFrequencyMotor:highFreqMotor];
-                break;
-            }
-#endif
             // if controller has no haptic profile, it already falled bakc to device engine
-            [voidController.lowFreqMotor setMotorAmplitude:lowFreqMotor];
-            [voidController.highFreqMotor setMotorAmplitude:highFreqMotor];
+            [self applyPhysicalControllerRumble:voidController lowFreqMotor:lowFreqMotor highFreqMotor:highFreqMotor];
             break;
         case RumbleDevice:
-#if !TARGET_OS_TV
-            if (useGameSirG8MFiRumble) {
-                [_gameSirG8MFiRumble setLowFrequencyMotor:0 highFrequencyMotor:0];
-            }
-#endif
+            [self applyPhysicalControllerRumble:voidController lowFreqMotor:0 highFreqMotor:0];
             [_oscController.lowFreqMotor setMotorAmplitude:lowFreqMotor];
             [_oscController.highFreqMotor setMotorAmplitude:highFreqMotor];
             break;
         case LeftRightSwapped:
-#if !TARGET_OS_TV
-            if (useGameSirG8MFiRumble) {
-                [_gameSirG8MFiRumble setLowFrequencyMotor:highFreqMotor highFrequencyMotor:lowFreqMotor];
-                break;
-            }
-#endif
-            [voidController.lowFreqMotor setMotorAmplitude:highFreqMotor];
-            [voidController.highFreqMotor setMotorAmplitude:lowFreqMotor];
+            [self applyPhysicalControllerRumble:voidController lowFreqMotor:highFreqMotor highFreqMotor:lowFreqMotor];
             break;
         case RumbleOff:
-#if !TARGET_OS_TV
-            if (useGameSirG8MFiRumble) {
-                [_gameSirG8MFiRumble setLowFrequencyMotor:0 highFrequencyMotor:0];
-            }
-#endif
+            [self applyPhysicalControllerRumble:voidController lowFreqMotor:0 highFreqMotor:0];
             break;
         default:
             break;
@@ -335,7 +331,7 @@ static void ApplyAdaptiveTriggerEffect(GCDualSenseAdaptiveTrigger* trigger,
                             deviceAccelSample.x += voidController.motionManager.deviceMotion.gravity.x;
                             deviceAccelSample.y += voidController.motionManager.deviceMotion.gravity.y;
                             deviceAccelSample.z += voidController.motionManager.deviceMotion.gravity.z;
-                            NSLog(@"sending device accel %f", CACurrentMediaTime());
+                            // NSLog(@"sending device accel %f", CACurrentMediaTime());
 
                             UIInterfaceOrientation interfaceOrientation = [self currentInterfaceOrientation];
                             CMAcceleration mappedDeviceAccelSample = {};
@@ -490,10 +486,10 @@ static void ApplyAdaptiveTriggerEffect(GCDualSenseAdaptiveTrigger* trigger,
                                                                   block:^(NSTimer *timer) {
                                     GCAcceleration lastAccelSample = voidController.lastAccelSample;
                                     GCAcceleration accelSample = voidController.gamepad.motion.acceleration;
-                                    
                                     if (memcmp(&accelSample, &lastAccelSample, sizeof(accelSample)) == 0) {
                                         return;
                                     }
+                                    // NSLog(@"sending controller accel %f", CACurrentMediaTime());
                                     
                                     voidController.lastAccelSample = accelSample;
                                     
@@ -1349,7 +1345,8 @@ double rc_expo(double x, double expo) {
 
 
 - (bool)useMotionHandler{
-    return true;
+    return tempSettings.gyroMode.intValue == GyroModeOff
+    || tempSettings.gyroMode.intValue == AlwaysDevice;
 }
 
 - (void)switchMotionControlOnOffByControllerButton{
@@ -1777,6 +1774,11 @@ double rc_expo(double x, double expo) {
     voidController.motionTypes = [[NSMutableSet alloc] init];
     voidController.supportedEmulationFlags = EMULATING_SPECIAL | EMULATING_SELECT;
     voidController.gamepad = controller;
+#if !TARGET_OS_TV
+    voidController.hardware = [_gameSirG8MFiRumbler isTargetController:controller] ? ControllerHardwareG8PlusMFi : ControllerHardwareGeneric;
+#else
+    voidController.hardware = ControllerHardwareGeneric;
+#endif
     voidController.hasAccelerometer = NO;
     voidController.hasGyroscope = NO;
 
@@ -2036,7 +2038,7 @@ double rc_expo(double x, double expo) {
     [ControllerUtil.activeStreamingGCControllers removeAllObjects];
     _controllerNumbers = 0;
 #if !TARGET_OS_TV
-    _gameSirG8MFiRumble = [[GameSirG8MFiRumble alloc] init];
+    _gameSirG8MFiRumbler = [[GameSirG8MFiRumbler alloc] init];
 #endif
     
     _captureMouse = (streamConfig.localMousePointerMode == 0);
@@ -2098,8 +2100,8 @@ double rc_expo(double x, double expo) {
         VoidController* voidController = [self->_voidControllers objectForKey:[NSNumber numberWithInteger:controller.playerIndex]];
         if (voidController) {
 #if !TARGET_OS_TV
-            if ([self->_gameSirG8MFiRumble isTargetController:controller]) {
-                [self->_gameSirG8MFiRumble stopAndClose];
+            if ([self->_gameSirG8MFiRumbler isTargetController:controller]) {
+                [self->_gameSirG8MFiRumbler stopAndClose];
             }
 #endif
             [self stopTimerForController:voidController];
@@ -2306,7 +2308,7 @@ double rc_expo(double x, double expo) {
 {
     [ControllerUtil stopAllDualSenseHaptics];
 #if !TARGET_OS_TV
-    [_gameSirG8MFiRumble invalidate];
+    [_gameSirG8MFiRumbler invalidate];
 #endif
 
     if (VLSharedControllerSupport == self) {

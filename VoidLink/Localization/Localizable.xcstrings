@@ -5978,6 +5978,35 @@
         }
       }
     },
+    "Exit Directly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit Directly"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接退出"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接退出"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接退出"
+          }
+        }
+      }
+    },
     "Cannot select two touchpad controls at the same time" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16411,6 +16440,64 @@
         }
       }
     },
+    "Save Changes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save Changes"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存修改"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存修改"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存修改"
+          }
+        }
+      }
+    },
+    "Save changes before closing?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save changes before closing?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭前是否保存修改？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉前是否儲存修改？"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉前是否儲存修改？"
+          }
+        }
+      }
+    },
     "Saving over the 'Default' profile is not allowed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20134,6 +20221,35 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "https://voidlink.yuque.com/org-wiki-voidlink-znirha/fa3tgr/iy4zgh86odhfgf6h"
+          }
+        }
+      }
+    },
+    "emulatedGyroModeDisablesBuiltinMotionControlTip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turning this option on will disable VoidLink's built-in motion control. If you need the app to convert gyroscope input directly into mouse or controller-stick signals, remember to turn this option off."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开该选项，将导致 VoidLink 内置的体感控制功能失效。如果您需要在 App 内部直接将陀螺仪转换为鼠标或手柄摇杆信号，请记得关闭该选项。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟該選項，將導致 VoidLink 內建的體感控制功能失效。如果您需要在 App 內部直接將陀螺儀轉換為滑鼠或手把搖桿訊號，請記得關閉該選項。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟該選項，將導致 VoidLink 內置的體感控制功能失效。如果您需要在 App 內部直接將陀螺儀轉換為滑鼠或手掣搖桿訊號，請記得關閉該選項。"
           }
         }
       }

@@ -3,7 +3,7 @@ name: Build IPA
 on: 
   workflow_dispatch:
   push:
-    branches: Integration
+    branches: [ReadmeBranch]
 
 jobs:
   build:
@@ -14,6 +14,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          ref: Integration
           submodules: recursive
 
       - name: Get Last Commit Time
